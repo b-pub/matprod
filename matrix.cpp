@@ -85,8 +85,11 @@ bb::Matrix::Matrix(const MatrixProduct& mp)
     MatrixProduct &ncmp = const_cast<MatrixProduct&>(mp);
     m_ok = ncmp.calculate(result);
 
-    if (m_ok)
+    if (m_ok) {
         m_priv = result.m_priv->addRef();
+        m_naiveCost = ncmp.getNaiveCost();
+        m_optimizedCost = ncmp.getOptimizedCost();
+    }
 }
 
 bb::Matrix::Matrix()
@@ -168,14 +171,14 @@ bb::Matrix& bb::Matrix::operator=(const Matrix& o)
     return *this;
 }
 
-bb::Matrix bb::Matrix::mult(Matrix& b, int& numMults)
+bb::Matrix bb::Matrix::mult(Matrix& b, size_t& numMults)
 {
     Matrix result(rows(), b.cols(),
                   std::string("(") + name() + "*" + b.name() + ")");
 
     Matrix &a = *this;        // just for clean expressions below
 
-    int mults = 0;
+    size_t mults = 0;
 
     for (int i=0; i < a.rows(); i++)
         for (int j=0; j < b.cols(); j++)
@@ -226,15 +229,21 @@ bool bb::MatrixProduct::calculate(Matrix &OUTresult)
  * Calculates the "cost" of matrix multiplication - the number of
  * multiplications two matrices require.
  */
-long bb::MatrixProduct::calcNaiveCost()
+size_t bb::MatrixProduct::getNaiveCost()
 {
-    long cost = 0;
+    size_t cost = 0;
     const size_t last = m_matrices.size() - 1;
     for (size_t i=0; i<last; i++)
     {
-        cost += m_matrices[i].rows() * m_matrices[i].cols() * m_matrices[i+1].rows();
+        // For two matrices mxn and nxp, the #mults is m*n*p
+        cost += m_matrices[i].rows() * m_matrices[i].cols() * m_matrices[i+1].cols();
     }
     return cost;
+}
+
+size_t bb::MatrixProduct::getOptimizedCost()
+{
+    return m_numMults;
 }
 
 bb::MatrixProduct::MatrixProduct(const Matrix& m1, const Matrix& m2)
@@ -278,6 +287,28 @@ static void free2DInt(int **array, uint r)
     delete[] array;
 }
 
+static void printMatrix(std::string msg, int **m, int rows, int cols)
+{
+    std::cout << "---- " << msg << std::endl;
+
+    std::cout << "+-";
+    for (int i=0; i<cols; i++)
+        std::cout << "      ";
+    std::cout << "-+\n";
+
+    for (int r=0; r<rows; r++) {
+        std::cout << "| ";
+        for (int c=0; c<cols; c++)
+            std::cout << std::setw(6) << m[r][c];
+        std::cout << " |\n";
+    }
+
+    std::cout << "+-";
+    for (int i=0; i<cols; i++)
+        std::cout << "      ";
+    std::cout << "-+\n";
+}
+
 /*
  * The following two functions come from
  * "Introduction to Algorithms", by Cormen, Leiserson, and Rivest, 1994.
@@ -317,6 +348,9 @@ void bb::MatrixProduct::makeChainOrder(Matrix &OUTresult)
             }
         }
     }
+
+    // printMatrix("Cost Matrix", m, n+1, n+1);
+    // printMatrix("Split Matrix", s, n+1, n+1);
 
     OUTresult = matrixChainMultiply(s, 1, n);
 

@@ -71,17 +71,20 @@ namespace bb {
     class MatrixProduct
     {
         std::vector<Matrix> m_matrices;
-        int m_numMults;
+        size_t m_numMults;
 
       public:
+
         /**
          * Create a MatrixProduct with initial two matrices.
          */
         MatrixProduct(const Matrix &m1, const Matrix &m2);
+
         /**
          * Accumulate another matrix for the product.
          */
         MatrixProduct& operator*(const Matrix &m);
+
         /**
          * Perform calculation planning and computation. In this
          * version, a boolean value is returned to report whether the
@@ -92,8 +95,10 @@ namespace bb {
          */
         bool calculate(Matrix &OUTresult);
 
+        size_t getNaiveCost(); // Returns #mults for naive serial computation
+        size_t getOptimizedCost(); // Returns #mults for optimized calculation
+
       private:
-        long calcNaiveCost(); // Returns #mults for naive serial computation
 
         void makeChainOrder(Matrix &OUTresult);
         Matrix matrixChainMultiply(int **s, int i, int j);
@@ -130,6 +135,10 @@ namespace bb {
         bool m_ok;
         void init(int m, int n, std::string name);
 
+        // Store costs of each multiplication style for comparison:
+        size_t m_naiveCost;
+        size_t m_optimizedCost;
+
       public:
 
         Matrix();                                 // new empty matrix
@@ -144,6 +153,9 @@ namespace bb {
 
         int rows() const;
         int cols() const;
+
+        size_t getNaiveCost() const     { return m_naiveCost; }
+        size_t getOptimizedCost() const { return m_optimizedCost; }
 
         /**
          * Matrix data accessor. Access elements as M[i][j],
@@ -165,7 +177,7 @@ namespace bb {
          * result. The numMults parameter is set to the number of
          * multiplications required to calculate the product.
          */
-        Matrix mult(Matrix& m, int& numMults);
+        Matrix mult(Matrix& m, size_t& numMults);
 
         ~Matrix();
     };

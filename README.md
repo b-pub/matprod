@@ -1,4 +1,5 @@
 # matprod
+
 An experiment in operand-collecting for matrix chain multiplication
 
 The purpose of this code was to explore how a C++ expression
@@ -8,12 +9,12 @@ to be determined once all the operands are known. One type of
 calculation that this is directly applicable to is matrix chain
 multiplication, the application in this project.
 
-License
+# License
 
 This software is released under the MIT license. See the LICENSE file
 for details.
 
-Building
+# Building
 
 This project uses CMake 2.8 or later to generate the build files.
 No other libraries are needed.

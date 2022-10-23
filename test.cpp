@@ -31,12 +31,12 @@
 
 void exampleChain()
 {
-    bb::Matrix a(30, 35, "A1");
-    bb::Matrix b(35, 15, "A2");
-    bb::Matrix c(15, 5,  "A3");
-    bb::Matrix d(5,  10, "A4");
-    bb::Matrix e(10, 20, "A5");
-    bb::Matrix f(20, 25, "A6");
+    bb::Matrix a(30, 35, "A");
+    bb::Matrix b(35, 15, "B");
+    bb::Matrix c(15, 5,  "C");
+    bb::Matrix d(5,  10, "D");
+    bb::Matrix e(10, 20, "E");
+    bb::Matrix f(20, 25, "F");
 
     std::cout << "exampleChain() start." << std::endl;
 
@@ -45,11 +45,33 @@ void exampleChain()
     std::cout << "Final result is "
               << product.rows() << " x " << product.cols() << std::endl;
     std::cout << "Result name: " << product.name() << std::endl << std::endl;
+    std::cout << "Simple Mult cost: " << product.getNaiveCost() << std::endl;
+    std::cout << "Optimized Mult cost: " << product.getOptimizedCost() << std::endl;
+    std::cout << "----------------\n";
+}
+
+void matrix4x4Comparison()
+{
+    bb::Matrix pt_in(4, 1, "A");  // col vector, a 3D point
+    bb::Matrix to(4,4, "TO");     // translate to origin
+    bb::Matrix rz(4,4, "RZ");     // rotate about Z
+    bb::Matrix tb(4,4, "TB");     // translate back to world space
+
+    std::cout << "matrix4x4Comparison() start." << std::endl;
+
+    bb::Matrix pt_out = tb * rz * to * pt_in; // order of ops is right to left.
+
+    std::cout << "Final result is "
+              << pt_out.rows() << " x " << pt_out.cols() << std::endl;
+    std::cout << "Result name: " << pt_out.name() << std::endl << std::endl;
+    std::cout << "Simple Mult cost: " << pt_out.getNaiveCost() << std::endl;
+    std::cout << "Optimized Mult cost: " << pt_out.getOptimizedCost() << std::endl;
 }
 
 int main(int argc, char **argv)
 {
     exampleChain();
+    matrix4x4Comparison();
 
     return 0;
 }
